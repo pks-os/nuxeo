@@ -61,9 +61,13 @@ public class ConfigurationLoader {
 
     protected final Map<String, String> parametersMigration;
 
-    public ConfigurationLoader(Map<String, String> environment, Map<String, String> parametersMigration) {
+    protected final boolean hideDeprecationWarnings;
+
+    public ConfigurationLoader(Map<String, String> environment, Map<String, String> parametersMigration,
+            boolean hideDeprecationWarnings) {
         this.environment = environment;
         this.parametersMigration = parametersMigration;
+        this.hideDeprecationWarnings = hideDeprecationWarnings;
     }
 
     /**
