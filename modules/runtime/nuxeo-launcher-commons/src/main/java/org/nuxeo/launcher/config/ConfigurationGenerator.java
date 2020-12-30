@@ -123,11 +123,9 @@ public class ConfigurationGenerator {
     public static final String TEMPLATE_SEPARATOR = ",";
 
     /**
-     * Accurate but not used internally. NXP-18023: Java 8 update 40+ required
-     *
      * @since 5.7
      */
-    public static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "1.8.0_40", "11" };
+    public static final String[] COMPLIANT_JAVA_VERSIONS = new String[] { "11", "15" };
 
     /** @since 5.6 */
     protected static final String CONFIGURATION_PROPERTIES = "configuration.properties";
