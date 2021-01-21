@@ -19,8 +19,10 @@
 
 package org.nuxeo.launcher.info;
 
+import static java.util.Arrays.asList;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
-import static org.nuxeo.launcher.config.ConfigurationGenerator.NUXEO_PROFILES;
+import static org.nuxeo.launcher.config.ConfigurationConstants.ENV_NUXEO_PROFILES;
+import static org.nuxeo.launcher.config.ConfigurationConstants.FILE_TEMPLATE_DISTRIBUTION_PROPS;
 import static org.nuxeo.launcher.config.ConfigurationGenerator.TEMPLATE_SEPARATOR;
 
 import java.io.IOException;
@@ -42,7 +44,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import org.nuxeo.common.Environment;
 import org.nuxeo.common.codec.Crypto;
 import org.nuxeo.connect.update.LocalPackage;
-import org.nuxeo.launcher.config.ConfigurationGenerator;
 import org.nuxeo.launcher.config.ConfigurationHolder;
 
 @XmlAccessorType(XmlAccessType.NONE)
@@ -52,9 +53,13 @@ public class InstanceInfo {
     /** @since 11.5 */
     protected static final String DISTRIBUTION_PROPS = "distribution.properties";
 
-    /** @since 11.5 */
-    protected static final Path TEMPLATE_DISTRIBUTION_PROPS_PATH = Path.of("common", "config",
-            "distribution.properties");
+    /**
+     * Keys which value must be displayed thoughtfully.
+     *
+     * @since 11.5
+     */
+    protected static final List<String> SECRET_KEYS = asList("mailservice.password", "mail.transport.password",
+            "nuxeo.http.proxy.password", "nuxeo.ldap.bindpassword", "nuxeo.user.emergency.password");
 
     public InstanceInfo() {
     }
@@ -91,7 +96,7 @@ public class InstanceInfo {
         Path distFile = configHolder.getConfigurationPath().resolve(DISTRIBUTION_PROPS);
         if (Files.notExists(distFile)) {
             // fallback in the file in templates
-            distFile = configHolder.getTemplatesPath().resolve(TEMPLATE_DISTRIBUTION_PROPS_PATH);
+            distFile = configHolder.getTemplatesPath().resolve(FILE_TEMPLATE_DISTRIBUTION_PROPS);
         }
         try {
             nxInstance.distribution = new DistributionInfo(distFile.toFile());
@@ -108,7 +113,7 @@ public class InstanceInfo {
         }
         nxInstance.config = new ConfigurationInfo();
         // profiles
-        String profiles = System.getenv(NUXEO_PROFILES);
+        String profiles = System.getenv(ENV_NUXEO_PROFILES);
         if (isNotBlank(profiles)) {
             nxInstance.config.profiles.addAll(Arrays.asList(profiles.split(TEMPLATE_SEPARATOR)));
         }
@@ -140,8 +145,8 @@ public class InstanceInfo {
         var keyVals = new ArrayList<KeyValueInfo>(keys.size());
         for (String key : new TreeSet<>(keys)) {
             String value = configHolder.getRawProperty(key);
-            if (ConfigurationGenerator.SECRET_KEYS.contains(key) || key.contains("password")
-                    || key.equals(Environment.SERVER_STATUS_KEY) || Crypto.isEncrypted(value)) {
+            if (SECRET_KEYS.contains(key) || key.contains("password") || key.equals(Environment.SERVER_STATUS_KEY)
+                    || Crypto.isEncrypted(value)) {
                 value = "********";
             }
             keyVals.add(new KeyValueInfo(key, value));
