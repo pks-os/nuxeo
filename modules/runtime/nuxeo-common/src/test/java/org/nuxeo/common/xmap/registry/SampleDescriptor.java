@@ -64,4 +64,7 @@ public class SampleDescriptor {
     @XRemove("stringMapAnnotated@empty")
     public Map<String, String> stringMapAnnotated;
 
+    @XNode("@class")
+    public Class<? extends SampleInterface> classContrib;
+
 }

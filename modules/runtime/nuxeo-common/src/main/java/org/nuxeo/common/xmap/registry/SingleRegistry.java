@@ -67,19 +67,18 @@ public class SingleRegistry extends AbstractRegistry implements Registry {
             setContribution(null);
             return null;
         }
-        Object contrib;
+        Object existing = null;
         XAnnotatedMember merge = xObject.getMerge();
         if (merge != null && Boolean.TRUE.equals(merge.getValue(ctx, element))) {
-            if (contribution != null && xObject.getCompatWarnOnMerge() && !merge.hasValue(ctx, element)) {
+            existing = contribution;
+            if (existing != null && xObject.getCompatWarnOnMerge() && !merge.hasValue(ctx, element)) {
                 logWarn(String.format("A contribution on extension '%s' has been implicitly merged: the compatibility "
                         + "mechanism on its descriptor class '%s' detected it, and the attribute merge=\"true\" "
                         + "should be added to this definition.", extensionId, contribution.getClass().getName()),
                         extensionId);
             }
-            contrib = xObject.newInstance(ctx, element, contribution);
-        } else {
-            contrib = xObject.newInstance(ctx, element);
         }
+        Object contrib = xObject.newInstance(ctx, element, existing);
         setContribution(contrib);
         XAnnotatedMember enable = xObject.getEnable();
         if (enable != null) {
