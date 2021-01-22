@@ -42,8 +42,11 @@ public class SingleRegistry extends AbstractRegistry implements Registry {
     // volatile for double-checked locking
     protected volatile boolean enabled = true;
 
-    public SingleRegistry() {
-        super();
+    @Override
+    public void initialize() {
+        setContribution(null);
+        enabled = true;
+        super.initialize();
     }
 
     @SuppressWarnings("unchecked")
@@ -68,9 +71,10 @@ public class SingleRegistry extends AbstractRegistry implements Registry {
         XAnnotatedMember merge = xObject.getMerge();
         if (merge != null && Boolean.TRUE.equals(merge.getValue(ctx, element))) {
             if (contribution != null && xObject.getCompatWarnOnMerge() && !merge.hasValue(ctx, element)) {
-                log.warn("A contribution on extension '{}' has been implicitly merged: the compatibility "
-                        + "mechanism on its descriptor class '{}' detected it, and the attribute merge=\"true\" "
-                        + "should be added to this definition.", extensionId, contribution.getClass().getName());
+                logWarn(String.format("A contribution on extension '%s' has been implicitly merged: the compatibility "
+                        + "mechanism on its descriptor class '%s' detected it, and the attribute merge=\"true\" "
+                        + "should be added to this definition.", extensionId, contribution.getClass().getName()),
+                        extensionId);
             }
             contrib = xObject.newInstance(ctx, element, contribution);
         } else {
@@ -85,6 +89,14 @@ public class SingleRegistry extends AbstractRegistry implements Registry {
             }
         }
         return (T) contrib;
+    }
+
+    protected void logError(String message, Throwable t, String extensionId) {
+        log.error(message, t);
+    }
+
+    protected void logWarn(String message, String extensionId) {
+        log.warn(message);
     }
 
 }
