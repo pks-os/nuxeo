@@ -139,8 +139,6 @@ public class ConfigurationGenerator {
     /** @since 11.5 */
     private final ConfigurationChecker configChecker;
 
-    private final ServerConfigurator serverConfigurator;
-
     private final Level logLevel;
 
     private Environment env;
@@ -176,7 +174,6 @@ public class ConfigurationGenerator {
                 builder.hideDeprecationWarnings);
         configMarshaller = new ConfigurationMarshaller(systemProperties);
         configChecker = new ConfigurationChecker(systemProperties);
-        serverConfigurator = new ServerConfigurator(this, configHolder);
 
         systemProperties.setProperty(PARAM_NUXEO_CONF, configHolder.getNuxeoConfPath().toString());
 
@@ -229,13 +226,6 @@ public class ConfigurationGenerator {
 
     public CryptoProperties getUserConfig() {
         return configHolder.userConfig;
-    }
-
-    /**
-     * @since 5.4.2
-     */
-    public final ServerConfigurator getServerConfigurator() {
-        return serverConfigurator;
     }
 
     /**
@@ -373,20 +363,6 @@ public class ConfigurationGenerator {
         }
         log.debug("Set as loop back URL: {}", loopbackURL);
         configHolder.putDefault(PARAM_LOOPBACK_URL, loopbackURL);
-    }
-
-    /**
-     * @since 5.4.2
-     * @param key Directory system key
-     * @see Environment
-     */
-    public void setDirectoryWithProperty(String key) {
-        String directory = configHolder.getProperty(key);
-        if (directory == null) {
-            configHolder.defaultConfig.setProperty(key, serverConfigurator.getDirectory(key).getPath());
-        } else {
-            serverConfigurator.setDirectory(key, directory);
-        }
     }
 
     protected void generateFiles() throws ConfigurationException {
