@@ -1,0 +1,52 @@
+@startuml
+participant Nuxeo order 1
+participant tmp order 2
+participant S3 order 3
+== Write ==
+Nuxeo -> tmp: write
+                                hnote right: bin_${TMP1}.tmp
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: missing
+tmp -> S3: write 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+tmp --> tmp: delete
+                                hnote right: bin_${TMP1}.tmp
+== Read ==
+Nuxeo <- S3: read 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+== Write same again ==
+Nuxeo -> tmp: write
+                                hnote right: bin_${TMP2}.tmp
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: exists (3 bytes)
+tmp --> tmp: delete
+                                hnote right: bin_${TMP2}.tmp
+== Copy ==
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: other/acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: missing
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: exists (3 bytes)
+Nuxeo -> S3: copyObject
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8 to other/acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: copied
+== Read copy ==
+Nuxeo <- S3: read 3 bytes
+                                hnote right: other/acbd18db4cc2f85cedef654fccc4a4d8
+== Write second blob ==
+Nuxeo -> tmp: write
+                                hnote right: bin_${TMP3}.tmp
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+Nuxeo <-- S3: missing
+tmp -> S3: write 3 bytes
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+tmp --> tmp: delete
+                                hnote right: bin_${TMP3}.tmp
+== Read second blob ==
+Nuxeo <- S3: read 3 bytes
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+@enduml

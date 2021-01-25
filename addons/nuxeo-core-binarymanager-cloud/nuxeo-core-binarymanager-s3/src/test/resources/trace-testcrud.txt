@@ -1,0 +1,84 @@
+@startuml
+participant Nuxeo order 1
+participant Cache order 2
+participant S3 order 3
+== Write ==
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP1}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP1a}
+Nuxeo <-- Cache: missing
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: missing
+Nuxeo -> S3: write 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Cache --> Cache: rename
+                                hnote right of Cache: acbd18db4cc2f85cedef654fccc4a4d8
+== Read ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+== Write same again ==
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP2}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP2a}
+Nuxeo <-- Cache: exists
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo -> Cache: delete
+                                hnote right: ${TMP2a}
+== Copy ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP3}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP3a}
+Nuxeo <-- Cache: missing
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: other/acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: missing
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: exists (3 bytes)
+Nuxeo -> S3: copyObject
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8 to other/acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- S3: copied
+Cache --> Cache: rename
+                                hnote right of Cache: acbd18db4cc2f85cedef654fccc4a4d8
+== Read copy ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+== Read after cache clear ==
+Nuxeo <-- Cache: missing
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <- S3: read 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <-- Cache: missing
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo <- S3: read 3 bytes
+                                hnote right: other/acbd18db4cc2f85cedef654fccc4a4d8
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: acbd18db4cc2f85cedef654fccc4a4d8
+== Write second blob ==
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP4}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP4a}
+Nuxeo <-- Cache: missing
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+Nuxeo --> S3: getObjectMetadata
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+Nuxeo <-- S3: missing
+Nuxeo -> S3: write 3 bytes
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+Cache --> Cache: rename
+                                hnote right of Cache: 37b51d194a7513e45b56f6524f2d51f2
+== Read second blob ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: 37b51d194a7513e45b56f6524f2d51f2
+@enduml

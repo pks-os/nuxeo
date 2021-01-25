@@ -1,0 +1,56 @@
+@startuml
+participant Nuxeo order 1
+participant Cache order 2
+participant S3 order 3
+== Write ==
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP1}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP1a}
+Nuxeo -> S3: write 3 bytes
+                                hnote right: id1
+Nuxeo <-- S3: v=${VERSION1}
+Cache --> Cache: rename
+                                hnote right of Cache: id1@${VERSION1}
+== Read ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id1@${VERSION1}
+== Copy ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id1@${VERSION1}
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP2}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP2a}
+' XXX TODO this should be a direct copy XXX
+Nuxeo -> S3: write 3 bytes
+                                hnote right: other/id2
+Nuxeo <-- S3: v=${VERSION2}
+Cache --> Cache: rename
+                                hnote right of Cache: id2@${VERSION2}
+== Read copy ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id2@${VERSION2}
+== Write second blob ==
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP3}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP3a}
+Nuxeo -> S3: write 3 bytes
+                                hnote right: id1
+Nuxeo <-- S3: v=${VERSION3}
+Cache --> Cache: rename
+                                hnote right of Cache: id1@${VERSION3}
+== Read second blob ==
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id1@${VERSION3}
+== Delete second blob ==
+Nuxeo -> Cache: delete
+                                hnote right: id1@${VERSION3}
+Nuxeo -> S3: deleteVersion
+                                hnote right: id1 v=${VERSION3}
+Nuxeo <-- Cache: missing
+                                hnote right: id1@${VERSION3}
+Nuxeo <-- S3: missing
+                                hnote right: id1 v=${VERSION3}
+@enduml

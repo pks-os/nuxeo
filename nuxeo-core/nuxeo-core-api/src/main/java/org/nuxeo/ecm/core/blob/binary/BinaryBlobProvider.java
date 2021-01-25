@@ -134,6 +134,11 @@ public class BinaryBlobProvider implements BlobProvider {
     }
 
     @Override
+    public String getId() {
+        return binaryManager.getId();
+    }
+
+    @Override
     public Map<String, String> getProperties() {
         return Collections.emptyMap();
     }

@@ -47,6 +47,13 @@ public interface BinaryManager {
     void initialize(String blobProviderId, Map<String, String> properties) throws IOException;
 
     /**
+     * Returns the id of the binary manager.
+     *
+     * @since 11.5
+     */
+    String getId();
+
+    /**
      * Saves the given blob into a {@link Binary}.
      * <p>
      * Returns a {@link Binary} representing the stream. The {@link Binary} includes a digest that is a sufficient

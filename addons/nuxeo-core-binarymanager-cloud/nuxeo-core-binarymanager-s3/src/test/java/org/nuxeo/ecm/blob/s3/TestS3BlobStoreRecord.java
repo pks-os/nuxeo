@@ -25,8 +25,10 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 
 import org.junit.Test;
+import org.nuxeo.ecm.core.blob.AbstractBlobStore;
 import org.nuxeo.runtime.test.runner.Deploy;
 import org.nuxeo.runtime.test.runner.Features;
+import org.nuxeo.runtime.test.runner.LogCaptureFeature;
 import org.nuxeo.runtime.test.runner.TransactionalConfig;
 import org.nuxeo.runtime.test.runner.TransactionalFeature;
 import org.nuxeo.runtime.transaction.TransactionHelper;
@@ -41,6 +43,8 @@ public class TestS3BlobStoreRecord extends TestS3BlobStoreAbstract {
         assertTrue(bp.isTransactional());
         assertTrue(bp.isRecordMode());
         assertFalse(bs.getKeyStrategy().useDeDuplication());
+        assertTrue(isTransactional());
+        assertTrue(hasCache());
     }
 
     @Test
@@ -54,4 +58,27 @@ public class TestS3BlobStoreRecord extends TestS3BlobStoreAbstract {
         });
     }
 
+    @Test
+    @LogCaptureFeature.FilterOn(loggerClass = AbstractBlobStore.class, logLevel = "TRACE")
+    public void testCRUDTracingInTransaction() {
+        TransactionHelper.runInTransaction(() -> {
+            try {
+                testCRUDTracing(false); // single transaction
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
+
+    @Test
+    @LogCaptureFeature.FilterOn(loggerClass = AbstractBlobStore.class, logLevel = "TRACE")
+    public void testCRUDTracingInManyTransactions() {
+        TransactionHelper.runInTransaction(() -> {
+            try {
+                testCRUDTracing(true); // many transactions
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        });
+    }
 }

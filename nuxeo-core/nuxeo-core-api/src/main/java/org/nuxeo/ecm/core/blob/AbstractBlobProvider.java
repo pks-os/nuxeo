@@ -86,6 +86,11 @@ public abstract class AbstractBlobProvider implements BlobProvider {
     }
 
     @Override
+    public String getId() {
+        return blobProviderId;
+    }
+
+    @Override
     public Map<String, String> getProperties() {
         return properties;
     }

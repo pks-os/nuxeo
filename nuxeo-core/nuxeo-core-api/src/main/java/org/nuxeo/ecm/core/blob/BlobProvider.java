@@ -350,6 +350,13 @@ public interface BlobProvider {
     }
 
     /**
+     * Returns the id of the blob provider.
+     *
+     * @since 11.5
+     */
+    String getId();
+
+    /**
      * Returns the properties of the blob provider.
      *
      * @since 10.2

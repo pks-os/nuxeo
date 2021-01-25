@@ -5,7 +5,7 @@
   <!-- it is the source blobProvider -->
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="s3DUBlobProviderSource">
-      <class>org.nuxeo.ecm.core.storage.sql.S3BinaryManager</class>
+      <class>org.nuxeo.ecm.blob.s3.S3BlobProvider</class>
       <property name="crypt.serverside">${nuxeo.s3storage.transient.crypt.serverside}</property>
       <property name="bucket">${nuxeo.s3storage.transient.bucket}</property>
       <property name="bucket_prefix">unit-test-transient-prefix/</property>
@@ -18,7 +18,7 @@
   <!-- it is the destination blobProvider -->
   <extension target="org.nuxeo.ecm.core.blob.BlobManager" point="configuration">
     <blobprovider name="s3DUBlobProviderDestination">
-      <class>org.nuxeo.ecm.core.storage.sql.S3BinaryManager</class>
+      <class>org.nuxeo.ecm.blob.s3.S3BlobProvider</class>
       <property name="crypt.serverside">${nuxeo.s3storage.transient.crypt.serverside}</property>
       <property name="bucket">${nuxeo.s3storage.bucket}</property>
       <property name="bucket_prefix">unit-test-final-prefix/</property>

@@ -113,8 +113,7 @@ public abstract class TestAbstractBlobStore {
 
     protected void clearBlobStore(CachingBlobStore blobStore) throws IOException {
         clearBlobStore(blobStore.store);
-        Path dir = blobStore.cacheDir;
-        FileUtils.cleanDirectory(dir.toFile());
+        clearCache(blobStore);
     }
 
     protected void clearBlobStore(LocalBlobStore blobStore) throws IOException {
@@ -124,6 +123,24 @@ public abstract class TestAbstractBlobStore {
 
     protected void clearBlobStore(InMemoryBlobStore blobStore) {
         blobStore.map.clear();
+    }
+
+    protected void clearCache(BlobStore blobStore) throws IOException {
+        if (blobStore instanceof TransactionalBlobStore) {
+            clearCache((TransactionalBlobStore) blobStore);
+        } else if (blobStore instanceof CachingBlobStore) {
+            clearCache((CachingBlobStore) blobStore);
+        }
+    }
+
+    protected void clearCache(TransactionalBlobStore blobStore) throws IOException {
+        clearCache(blobStore.store);
+        clearCache(blobStore.transientStore);
+    }
+
+    protected void clearCache(CachingBlobStore blobStore) throws IOException {
+        Path dir = blobStore.cacheDir;
+        FileUtils.cleanDirectory(dir.toFile());
     }
 
     public void closeBlobStore() throws IOException {
@@ -163,16 +180,25 @@ public abstract class TestAbstractBlobStore {
     }
 
     protected void assertBlob(BlobStore bs, String key, String value) throws IOException {
-        // check readBlobTo
+        assertBlobStoreReadBlob(bs, key, value);
+        assertBlobStoreGetFile(bs, key, value);
+        assertBlobStoreGetStream(bs, key, value);
+    }
+
+    protected void assertBlobStoreReadBlob(BlobStore bs, String key, String value) throws IOException {
         assertTrue(bs.readBlob(key, tmpFile));
         assertEquals(value, new String(Files.readAllBytes(tmpFile), UTF_8));
-        // check file
+    }
+
+    protected void assertBlobStoreGetFile(BlobStore bs, String key, String value) throws IOException {
         OptionalOrUnknown<Path> fileOpt = bs.getFile(key);
         if (fileOpt.isKnown()) {
             assertTrue(fileOpt.isPresent());
             assertEquals(value, new String(Files.readAllBytes(fileOpt.get()), UTF_8));
         }
-        // check stream
+    }
+
+    protected void assertBlobStoreGetStream(BlobStore bs, String key, String value) throws IOException {
         OptionalOrUnknown<InputStream> streamOpt = bs.getStream(key);
         if (streamOpt.isKnown()) {
             assertTrue(streamOpt.isPresent());
@@ -198,11 +224,23 @@ public abstract class TestAbstractBlobStore {
 
     protected void assertNoBlob(BlobStore bs, String key) throws IOException {
         // check readBlobTo
+        assertNoBlobReadBlob(bs, key);
+        assertNoBlobGetFile(bs, key);
+        assertNoBlobGetStream(bs, key);
+    }
+
+    protected void assertNoBlobReadBlob(BlobStore bs, String key) throws IOException {
         assertFalse(bs.readBlob(key, tmpFile));
+    }
+
+    protected void assertNoBlobGetFile(BlobStore bs, String key) {
         OptionalOrUnknown<Path> fileOpt = bs.getFile(key);
         if (fileOpt.isKnown()) {
             assertFalse(fileOpt.isPresent());
         }
+    }
+
+    protected void assertNoBlobGetStream(BlobStore bs, String key) throws IOException {
         OptionalOrUnknown<InputStream> streamOpt = bs.getStream(key);
         if (streamOpt.isKnown()) {
             assertFalse(streamOpt.isPresent());

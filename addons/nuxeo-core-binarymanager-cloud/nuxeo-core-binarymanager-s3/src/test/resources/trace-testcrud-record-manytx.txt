@@ -1,0 +1,105 @@
+@startuml
+participant Nuxeo order 1
+participant tx order 2
+participant Cache order 3
+participant S3 order 4
+== Write ==
+group tx write
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP1}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP1a}
+Nuxeo -> S3: write 3 bytes
+                                hnote right: id1
+Nuxeo <-- S3: v=${VERSION1}
+Cache --> Cache: rename
+                                hnote right of Cache: id1@${VERSION1}
+                                rnote over Nuxeo: id1@${VERSION1}
+end
+== TX commit ==
+== TX end ==
+== Read ==
+group tx read
+                                rnote over Nuxeo: id1@${VERSION1}
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id1@${VERSION1}
+end
+== Copy ==
+group tx write
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id1@${VERSION1}
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP2}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP2a}
+' XXX TODO this should be a direct copy XXX
+Nuxeo -> S3: write 3 bytes
+                                hnote right: other/id2
+Nuxeo <-- S3: v=${VERSION2}
+Cache --> Cache: rename
+                                hnote right of Cache: id2@${VERSION2}
+                                rnote over Nuxeo: id2@${VERSION2}
+end
+== Read copy ==
+group tx read
+                                rnote over Nuxeo: id2@${VERSION2}
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id2@${VERSION2}
+end
+== TX commit ==
+== TX end ==
+== Read after cache clear ==
+group tx read
+                                rnote over Nuxeo: id1@${VERSION1}
+Nuxeo <-- Cache: missing
+                                hnote right: id1@${VERSION1}
+Nuxeo <- S3: read 3 bytes
+                                hnote right: id1 v=${VERSION1}
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: id1@${VERSION1}
+end
+group tx read
+                                rnote over Nuxeo: id2@${VERSION2}
+Nuxeo <-- Cache: missing
+                                hnote right: id2@${VERSION2}
+Nuxeo <- S3: read 3 bytes
+                                hnote right: other/id2 v=${VERSION2}
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: id2@${VERSION2}
+end
+== Write second blob ==
+group tx write
+Nuxeo -> Cache: write 3 bytes
+                                hnote right: bin_${TMP3}.tmp
+Cache --> Cache: rename
+                                hnote right of Cache: ${TMP3a}
+Nuxeo -> S3: write 3 bytes
+                                hnote right: id1
+Nuxeo <-- S3: v=${VERSION3}
+Cache --> Cache: rename
+                                hnote right of Cache: id1@${VERSION3}
+                                rnote over Nuxeo: id1@${VERSION3}
+end
+== TX commit ==
+== TX end ==
+== Read second blob ==
+group tx read
+                                rnote over Nuxeo: id1@${VERSION3}
+Nuxeo <- Cache: read 3 bytes
+                                hnote right: id1@${VERSION3}
+end
+== Delete second blob ==
+== TX commit ==
+Nuxeo -> Cache: delete
+                                hnote right: id1@${VERSION3}
+Nuxeo -> S3: deleteVersion
+                                hnote right: id1 v=${VERSION3}
+== TX end ==
+group tx read
+                                rnote over Nuxeo: id1@${VERSION3}
+Nuxeo <-- Cache: missing
+                                hnote right: id1@${VERSION3}
+Nuxeo <-- S3: missing
+                                hnote right: id1 v=${VERSION3}
+end
+@enduml

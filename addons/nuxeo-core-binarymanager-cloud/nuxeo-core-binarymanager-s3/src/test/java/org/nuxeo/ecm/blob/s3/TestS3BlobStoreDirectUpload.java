@@ -1,5 +1,5 @@
 /*
- * (C) Copyright 2019 Nuxeo (http://nuxeo.com/) and others.
+ * (C) Copyright 2021 Nuxeo (http://nuxeo.com/) and others.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,22 +18,30 @@
  */
 package org.nuxeo.ecm.blob.s3;
 
-import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import javax.inject.Inject;
+
 import org.junit.Test;
+import org.nuxeo.ecm.core.blob.BlobManager;
+import org.nuxeo.ecm.core.blob.BlobProvider;
 import org.nuxeo.runtime.test.runner.Deploy;
 
-@Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3.tests:OSGI-INF/test-blob-provider-s3.xml")
-public class TestS3BlobStore extends TestS3BlobStoreAbstract {
+/**
+ * Tests S3DirectBatchHandler with S3BlobProvider.
+ *
+ * @since 11.5
+ */
+@Deploy("org.nuxeo.ecm.core.storage.binarymanager.s3.tests:OSGI-INF/test-blob-provider-s3-directupload.xml")
+public class TestS3BlobStoreDirectUpload extends TestS3BlobStoreDirectUploadAbstract {
+
+    @Inject
+    protected BlobManager blobManager;
 
     @Test
-    public void testFlags() {
-        assertFalse(bp.isTransactional());
-        assertFalse(bp.isRecordMode());
-        assertTrue(bs.getKeyStrategy().useDeDuplication());
-        assertFalse(isTransactional());
-        assertTrue(hasCache());
+    public void testImplementation() {
+        BlobProvider blobProvider = blobManager.getBlobProvider("s3DUBlobProviderSource");
+        assertTrue(blobProvider instanceof S3BlobProvider);
     }
 
 }

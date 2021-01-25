@@ -103,6 +103,11 @@ public abstract class AbstractBinaryManager implements BinaryManager {
         this.properties = properties;
     }
 
+    @Override
+    public String getId() {
+        return blobProviderId;
+    }
+
     protected void setDescriptor(BinaryManagerRootDescriptor descriptor) {
         this.descriptor = descriptor;
         computeDigestPattern();
